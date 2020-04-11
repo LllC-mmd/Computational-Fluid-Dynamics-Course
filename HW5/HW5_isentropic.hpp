@@ -36,7 +36,7 @@ class Matrix{
             return *this;
         }
 
-        _Tv* const* operator[](int const& j) const{
+        _Tv const* operator[](int const& j) const{
             return &_elems[j*nx];
         }
 
