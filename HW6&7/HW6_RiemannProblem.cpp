@@ -116,7 +116,7 @@ double p_ini(Var UL, Var UR, double tol){
     double pmin = min(pL, pR);
     double Qmax = pmax/pmin;
 
-    double p_pv = max(0.0, 0.5*(pL+pR) - 0.125*(uR-uL)*(UL.v1+UR.v1)*(aL+aR));
+    double p_pv = max(tol, 0.5*(pL+pR) - 0.125*(uR-uL)*(UL.v1+UR.v1)*(aL+aR));
     if (Qmax<=2.0 && (pmin<=p_pv && p_pv<=pmax)){
         return p_pv;
     }
@@ -129,7 +129,6 @@ double p_ini(Var UL, Var UR, double tol){
             double p_TS = (sqrt(AL/(p_pv+BL))*pL+sqrt(AR/(p_pv+BR))*pR-(uR-uL))/(sqrt(AL/(p_pv+BL))+sqrt(AR/(p_pv+BR)));
             return p_TS;
         }
-        
     }
 }
 
@@ -373,22 +372,56 @@ void fluxCalc_HLL(Vector<Var>& sol, Vector<Var>& FluxX, double dx, double dt, in
 
 void fluxCalc_HLLC(Vector<Var>& sol, Vector<Var>& FluxX, double dx, double dt, int nx, double tol, double maxiter){
     int im1, i0;
+    double p_tmp, qL, qR, aL, aR;
     double u_roe, H_roe, a_roe;
     double SL, SR, S_star;
     double uL, uR, pL, pR;
     Var sol_star;
+    const double gamma = 1.4;
 
     for (int i = 0; i < nx+1; i++){
         im1 = id_map(i-1, 0, nx-1);
         i0 = id_map(i, 0, nx-1);
+
+        uL = sol[im1].v2/sol[im1].v1;
+        pL = get_p(sol[im1]);
+        aL = sqrt(gamma*pL/sol[im1].v1);
+        uR = sol[i0].v2/sol[i0].v1;
+        pR = get_p(sol[i0]);
+        aR = sqrt(gamma*pR/sol[i0].v1);
+        
+        // Roe-Based Wave Speed Estimates
+        // cout << sol[im1].v1 << "\t" << sol[im1].v2 << "\t" << sol[im1].v3 << "\t" << sol[i0].v1 << "\t" << sol[i0].v2 << "\t" << sol[i0].v3 << endl;
         tie(u_roe, H_roe, a_roe) = RoeAvg(sol[im1], sol[i0]);
         SL = u_roe - a_roe;
         SR = u_roe + a_roe;
-        uL = sol[im1].v2/sol[im1].v1;
-        pL = get_p(sol[im1]);
-        uR = sol[i0].v2/sol[i0].v1;
-        pR = get_p(sol[i0]);
-        S_star = (pR - pL + sol[im1].v2*(SL-uL) - sol[i0].v2*(SR-uR)) / (sol[im1].v1*(SL-uL) - sol[i0].v1*(SR-uR)); 
+        // Pressure–Based Wave Speed Estimates
+        /*p_tmp = p_ini(sol[im1], sol[i0], tol);
+        if (p_tmp <= pL){
+            qL = 1.0;
+        }
+        else{
+            qL = sqrt(1+(gamma+1.0)/(2*gamma)*(p_tmp/pL-1.0));
+        }
+        if (p_tmp <= pR){
+            qR = 1.0;
+        }
+        else{
+            qR = sqrt(1+(gamma+1.0)/(2*gamma)*(p_tmp/pR-1.0));
+        }
+        
+        SL = uL - aL*qL;
+        SR = uR - aR*qR;*/
+
+        if (SL==SR){
+            S_star = SL;
+        }
+        else {
+            // cout << sol[im1].v1 << "\t" << SL << "\t" << uL << "\t" << sol[i0].v1 << "\t" << SR << "\t" << uR << endl;
+            S_star = (pR - pL + sol[im1].v2*(SL-uL) - sol[i0].v2*(SR-uR)) / (sol[im1].v1*(SL-uL) - sol[i0].v1*(SR-uR)); 
+        }
+        
+        // cout << SL << "\t" << S_star << "\t" << SR << endl;
         if (SL>=0){
             FluxX[i] = get_F(sol[im1]);
         }
@@ -430,13 +463,18 @@ void step(Vector<Var>& sol, Vector<Var>& FluxX, double dx, double dt, int nx, do
     }
 }
 
+/* 0.00333333333333 */
 /* g++ -Og -o HW6_RiemannProblem HW6_RiemannProblem.cpp HW6_RiemannProblem.hpp */
-/* ./HW6_RiemannProblem 0.3 100 0.001 0.0 1.0 0.3 0.01 HW6Case1 Godunov */
-/* ./HW6_RiemannProblem 0.15 50 0.001 0.0 1.0 0.5 0.01 HW6Case2 Godunov */
-/* ./HW6_RiemannProblem 0.012 40 0.001 0.0 1.0 0.5 0.01 HW6Case3 Godunov */
+/* ./HW6_RiemannProblem 0.2 200 0.001 0.0 1.0 0.3 0.01 HW6Case1 Godunov */
+/* ./HW6_RiemannProblem 0.15 150 0.001 0.0 1.0 0.5 0.01 HW6Case2 Godunov */
+/* ./HW6_RiemannProblem 0.012 120 0.0001 0.0 1.0 0.5 0.01 HW6Case3 Godunov */
 /* ./HW6_RiemannProblem 0.035 350 0.0001 0.0 1.0 0.4 0.01 HW6Case4 Godunov */
 /* ./HW6_RiemannProblem 0.012 120 0.0001 0.0 1.0 0.8 0.01 HW6Case5 Godunov */
-/* ./HW6_RiemannProblem 0.012 40 0.0001 0.0 1.0 0.5 0.01 HW7Case3 HLLC */
+/* ./HW6_RiemannProblem 0.25 250 0.001 0.0 1.0 0.5 0.01 HW7Case1 HLLC */
+/* ./HW6_RiemannProblem 0.15 150 0.001 0.0 1.0 0.5 0.01 HW7Case2 HLLC */
+/* ./HW6_RiemannProblem 0.012 120 0.0001 0.0 1.0 0.5 0.01 HW7Case3 HLLC */
+/* ./HW6_RiemannProblem 0.035 350 0.0001 0.0 1.0 0.4 0.01 HW7Case4 HLLC */
+/* ./HW6_RiemannProblem 0.012 120 0.0001 0.0 1.0 0.8 0.01 HW7Case5 HLLC */
 int main(int argc, char *argv[]) {
     double elapsedTime; 
     int stepCounter, reportStep;
@@ -474,7 +512,7 @@ int main(int argc, char *argv[]) {
     Vector<Var> FluxX(nx+1);
 
     // These cases are from Toro's book: 6.4 Numerical Results and Discussion for HW6
-    // and 10.8 Numerical Results for HW7
+    // and 4.3.3 Numerical Tests for HW7
     if (CaseNo=="HW6Case1"){
         rhoL = 1.0;
         uL = 0.75;
@@ -653,4 +691,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
