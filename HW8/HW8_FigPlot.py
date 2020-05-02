@@ -49,7 +49,7 @@ for i in range(0, 4):
 plt.savefig("HW8_TVD.png", dpi=400)
 
 # Calculate errors
-print("Para", "\t", "rho-10error", "\t", "rho-90error", "\t", "U-10Error", "\t", "U-90error", "\t", "p-10Error", "\t", "p-90Error")
+print("Para", "\t", "rho-5error", "\t", "rho-95error", "\t", "U-5Error", "\t", "U-95error", "\t", "p-5Error", "\t", "p-95Error")
 for nx in [100, 200, 500, 1000]:
     for scheme in ["SuperBee", "Minimod"]:
         rhoError = np.abs(res_Table[scheme + str(nx) + "Rho"] - res_Table["Exact"+str(nx)+"Rho"])
