@@ -23,10 +23,9 @@ for root, dirs, files in os.walk("HW8_res"):
                 schemeName = re.findall(r"([a-zA-Z]+)_", f)[0]
                 caseNo = case_dict[num_grid]
                 x_loc = [-0.5 + (i + 0.5) * 1.0/num_grid for i in range(0, l_res)]
-                res_Table[schemeName + str(num_grid)] = resArray
+                res_Table[schemeName + str(num_grid)+var] = resArray
                 if schemeName == "Exact":
                     ax[int(caseNo)][var_dict[var]].plot(x_loc, resArray, color="red", label=schemeName, zorder=1)
-
                 else:
                     ax[int(caseNo)][var_dict[var]].scatter(x_loc, resArray, s=2, c=annoate_dict[schemeName][0],
                                                         marker=annoate_dict[schemeName][1], label=schemeName, zorder=annoate_dict[schemeName][2])
@@ -50,10 +49,18 @@ for i in range(0, 4):
 plt.savefig("HW8_TVD.png", dpi=400)
 
 # Calculate errors
+print("Para", "\t", "rho-10error", "\t", "rho-90error", "\t", "U-10Error", "\t", "U-90error", "\t", "p-10Error", "\t", "p-90Error")
 for nx in [100, 200, 500, 1000]:
-    print("L_inf-error of num_grid="+str(nx))
-    print("SuperBee limiter: ", np.max(np.abs(res_Table["SuperBee"+str(nx)]-res_Table["Exact"+str(nx)])), "\t"
-            "Minimod limiter: ", np.max(np.abs(res_Table["Minimod"+str(nx)]-res_Table["Exact"+str(nx)])))
-    print("L_1-error of num_grid="+str(nx))
-    print("SuperBee limiter: ", np.mean(np.abs(res_Table["SuperBee"+str(nx)]-res_Table["Exact"+str(nx)])), "\t"
-            "Minimod limiter: ", np.mean(np.abs(res_Table["Minimod"+str(nx)]-res_Table["Exact"+str(nx)])))
+    for scheme in ["SuperBee", "Minimod"]:
+        rhoError = np.abs(res_Table[scheme + str(nx) + "Rho"] - res_Table["Exact"+str(nx)+"Rho"])
+        uError = np.abs(res_Table[scheme + str(nx) + "U"] - res_Table["Exact" + str(nx) + "U"])
+        pError = np.abs(res_Table[scheme + str(nx) + "P"] - res_Table["Exact" + str(nx) + "P"])
+        rho90 = np.percentile(rhoError, 95)
+        u90 = np.percentile(uError, 95)
+        p90 = np.percentile(pError, 95)
+
+        print(scheme+str(nx), "\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e" % (
+            np.mean(np.ma.masked_where(rhoError < rho90, rhoError)), np.mean(np.ma.masked_where(rhoError >= rho90, rhoError)),
+            np.mean(np.ma.masked_where(uError < u90, uError)), np.mean(np.ma.masked_where(uError >= u90, uError)),
+            np.mean(np.ma.masked_where(pError < p90, pError)), np.mean(np.ma.masked_where(pError >= p90, pError)),
+        ))
