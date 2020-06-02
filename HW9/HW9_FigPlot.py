@@ -58,7 +58,7 @@ for nx in [100, 200, 500, 1000]:
     u90 = np.percentile(uError, 90)
     p90 = np.percentile(pError, 90)
 
-    print("HLLC"+str(nx), "\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e" % (
+    print("HLLC-WENO"+str(nx), "\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e\t%.3e" % (
         np.mean(np.ma.masked_where(rhoError < rho90, rhoError)), np.mean(np.ma.masked_where(rhoError >= rho90, rhoError)),
         np.mean(np.ma.masked_where(uError < u90, uError)), np.mean(np.ma.masked_where(uError >= u90, uError)),
         np.mean(np.ma.masked_where(pError < p90, pError)), np.mean(np.ma.masked_where(pError >= p90, pError)),
