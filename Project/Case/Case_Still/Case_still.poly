@@ -1,0 +1,14 @@
+# Part of vertices
+4 2 0 1
+1 0.0 0.0 1
+2 1.0 0.0 1
+3 1.0 1.0 1
+4 0.0 1.0 1
+# Part of segments
+4 1
+1 1 2 2
+2 2 3 2
+3 3 4 0
+4 4 1 2
+# Part of holes
+0
