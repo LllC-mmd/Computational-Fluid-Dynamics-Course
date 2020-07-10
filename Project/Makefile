@@ -3,7 +3,7 @@
 objs = SWE_solver.o flowMath.o fvm.o integration.o mesh.o postprec.o preproc.o solve.o variable.o
     
 SWE : $(objs)
-	g++-9 -g -O3 -o SWE $(objs) -DARMA_DONT_USE_WRAPPER -std=c++11 -larmadillo -lhdf5 -headerpad_max_install_names \
+	g++-9 -g -O3 -o SWE $(objs) -DARMA_DONT_USE_WRAPPER -std=c++11 -larmadillo -lhdf5 \
 	-L/usr/local/Cellar/openblas/0.3.9/lib -lopenblas -L/usr/local/Cellar/lapack/3.9.0/lib -llapack \
 	-I/usr/local/Cellar/armadillo/9.850.1_1/include -L/usr/local/Cellar/armadillo/9.850.1_1/lib \
 	-I/usr/local/hdf5/HDF5/1.10.5/include/ -L/usr/local/hdf5/HDF5/1.10.5/lib -lhdf5_cpp 
