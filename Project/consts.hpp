@@ -3,11 +3,13 @@
 #include <array>
 #include <vector>
 #include <math.h>
+#include <limits>
 
 using namespace std;
 
 //---------------- Flow2D model part ----------------//
 const double Newton_Raphson_tol = 1e-9;
+const double machine_epsilon = numeric_limits<double>::epsilon();
 
 // slope limiter 
 const double epsilon_limiter = 1e-12;
