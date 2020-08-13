@@ -238,7 +238,7 @@ U Cell::VFR_set_eta(const U& u){
     double eta_2 = 0.5*(-r1 + sqrt(r1*r1 - 4.0*r2));
     double eta_3 = u_new.h + (z1+z2+z3)/3.0;
 
-    if (u_new.h <= 0.0){
+    if (u_new.h <= machine_epsilon){
         u_new.eta = z1;
     }
     else if ((z1 < eta_1) && (eta_1 <= z2)){
